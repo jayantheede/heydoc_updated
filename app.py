@@ -18,10 +18,19 @@ app.secret_key = "your_secret_key_please_change_this_for_security" # **IMPORTANT
 def serve_local_logo():
     try:
         base_dir = os.path.dirname(__file__)
-        return send_from_directory(base_dir, "file.jpeg")
+        # Fallback sequence: file.jpeg -> static/images/heydoc_logo.png -> static/images/client_logo.png
+        if os.path.exists(os.path.join(base_dir, "file.jpeg")):
+            return send_from_directory(base_dir, "file.jpeg")
+        elif os.path.exists(os.path.join(base_dir, "static/images/heydoc_logo.png")):
+            return send_from_directory(os.path.join(base_dir, "static/images"), "heydoc_logo.png")
+        else:
+            return send_from_directory(os.path.join(base_dir, "static/images"), "client_logo.png")
     except Exception as _e:
-        # Fallback: return 404 if file not found
         return ("", 404)
+
+@app.route("/health")
+def health_check():
+    return jsonify({"status": "healthy"}), 200
 
 # SMTP Configuration for email notifications
 SMTP_SERVER = "smtp.gmail.com"
