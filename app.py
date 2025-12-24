@@ -130,7 +130,19 @@ if 'appointments' not in db.list_collection_names():
     except Exception as e:
         print(f"Warning: Database initialization failed: {e}")
 
-init_db()
+# init_db() # Moved to lazy initialization to prevent startup timeout
+_db_initialized = False
+
+def ensure_db_initialized():
+    global _db_initialized
+    if not _db_initialized:
+        init_db()
+        _db_initialized = True
+
+@app.before_request
+def before_request_init():
+    ensure_db_initialized()
+
 doctors_collection = db['doctor']
 patients_collection = db['patients']
 appointments_collection = db['appointments']
